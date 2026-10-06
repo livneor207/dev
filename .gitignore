@@ -5,3 +5,11 @@
 .idea/inspectionProfiles/
 *.pth
 *.pt
+*.nii
+*.csv
+*.gz
+*.json
+.DS_Store
+*.pdf
+*.txt
+*.bak
