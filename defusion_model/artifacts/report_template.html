@@ -1,0 +1,728 @@
+<title>Pet Breed Diffusion</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f6f3;
+    --surface-1: #fcfcfb;
+    --surface-2: #f1efea;
+    --border: #dedbd3;
+    --border-strong: #c6c2b7;
+    --text-primary: #14130f;
+    --text-secondary: #52514e;
+    --text-muted: #7d7b73;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --good: #1baf7a;
+    --warn: #eda100;
+    --code-bg: #edeae3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #131312;
+      --surface-1: #1a1a19;
+      --surface-2: #232322;
+      --border: #34342f;
+      --border-strong: #4b4b44;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #918f85;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --good: #199e70;
+      --warn: #c98500;
+      --code-bg: #202020;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #131312;
+    --surface-1: #1a1a19;
+    --surface-2: #232322;
+    --border: #34342f;
+    --border-strong: #4b4b44;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #918f85;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --good: #199e70;
+    --warn: #c98500;
+    --code-bg: #202020;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 40px 24px 72px; }
+
+  header { margin-bottom: 40px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 600; margin-bottom: 10px;
+  }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -.02em; font-weight: 650; }
+  .lede { font-size: 16px; color: var(--text-secondary); margin: 0; max-width: 68ch; }
+
+  h2 {
+    font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 600;
+    margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  section { margin-bottom: 44px; }
+  h3 { font-size: 16px; margin: 0 0 8px; font-weight: 620; }
+  p { margin: 0 0 14px; color: var(--text-secondary); max-width: 72ch; }
+  p.tight { margin-bottom: 8px; }
+  strong { color: var(--text-primary); font-weight: 620; }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+
+  .callout {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+
+  figure { margin: 0; }
+  figure img { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  figcaption { font-size: 12.5px; color: var(--text-muted); margin-top: 7px; }
+  .pixelated { image-rendering: pixelated; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 12px; }
+  .stat {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .stat .k { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .stat .v { font-size: 21px; font-weight: 640; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .stat .s { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 13px 15px; overflow-x: auto; margin: 0 0 12px;
+    font: 12.5px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text-primary);
+  }
+  code {
+    font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; }
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  th { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
+  tr.best td { background: var(--surface-2); }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 6px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-secondary); }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+  #chart { width: 100%; height: auto; display: block; touch-action: none; }
+  #chart text { font: 11px ui-sans-serif, system-ui, sans-serif; fill: var(--text-muted); }
+  #chart .axis-line { stroke: var(--border-strong); stroke-width: 1; }
+  #chart .grid-line { stroke: var(--border); stroke-width: 1; }
+  #chart .serie { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  #chart .crosshair { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+  #chart .dot { stroke: var(--surface-1); stroke-width: 2; }
+  #chart .dlabel { font-weight: 620; font-size: 11.5px; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; opacity: 0; transition: opacity .1s;
+    background: var(--surface-1); border: 1px solid var(--border-strong);
+    border-radius: 7px; padding: 8px 11px; font-size: 12.5px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.13); z-index: 5; min-width: 116px;
+  }
+  .tooltip .tt-t { font-weight: 640; margin-bottom: 5px; color: var(--text-primary); }
+  .tooltip .tt-r { display: flex; align-items: center; gap: 7px; color: var(--text-secondary); }
+  .tooltip .tt-r b { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 620; }
+  .chart-holder { position: relative; }
+
+  .toggle {
+    display: inline-flex; gap: 0; border: 1px solid var(--border);
+    border-radius: 7px; overflow: hidden; margin-bottom: 14px;
+  }
+  .toggle button {
+    font: inherit; font-size: 12.5px; padding: 5px 13px; border: 0; cursor: pointer;
+    background: var(--surface-1); color: var(--text-secondary);
+  }
+  .toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); font-weight: 600; }
+  .toggle button + button { border-left: 1px solid var(--border); }
+
+  ul { margin: 0 0 14px; padding-left: 20px; color: var(--text-secondary); }
+  li { margin-bottom: 7px; }
+  li strong { color: var(--text-primary); }
+  footer { border-top: 1px solid var(--border); padding-top: 18px; font-size: 13px; color: var(--text-muted); }
+  .nowrap { white-space: nowrap; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Diffusion from scratch &middot; Apple&nbsp;MPS</div>
+  <h1>Cats, dogs, and one Australian&nbsp;Shepherd</h1>
+  <p class="lede">
+    Two models, one repo. A class-conditional DDPM trained from scratch on pet photos,
+    and a pretrained latent-diffusion model for the breed prompt the scratch model
+    structurally cannot answer. Plus four bugs that were quietly ruining the output.
+  </p>
+</header>
+
+<section>
+  <h2>The requested prompt</h2>
+  <p>
+    <strong>RealVisXL&nbsp;V4.0</strong> at 1024&times;1024, 35 denoising steps, guidance 7.0,
+    with a photographic negative prompt. ~90&nbsp;s per image on MPS. Blue merle coat,
+    tricolour markings, the characteristic face mask, real depth of field and
+    individual fur strands.
+  </p>
+  <div class="grid4" id="aussie-grid"></div>
+  <div class="grid2" style="margin-top:16px" id="aussie-run-grid"></div>
+</section>
+
+<section>
+  <h2>Getting to photorealism</h2>
+  <p>
+    The first pass used <code>sd-turbo</code> and looked illustrated. The cause was not the
+    prompt &mdash; it was <strong>guidance</strong>. Turbo models are distilled to run in 4 steps
+    with <code>guidance_scale=0.0</code>, and at zero guidance a negative prompt is
+    mathematically inert: there is no unconditional prediction to push away from. So no
+    amount of "photorealistic, not a painting" could take effect.
+  </p>
+  <div class="grid2">
+    <figure>
+      <img id="img-turbo" alt="Australian Shepherd generated by sd-turbo, illustrated looking">
+      <figcaption>sd-turbo &middot; 512px, 4 steps, guidance 0.0, negative prompt inert</figcaption>
+    </figure>
+    <figure>
+      <img id="img-realvis" alt="Australian Shepherd generated by RealVisXL, photorealistic">
+      <figcaption>RealVisXL V4.0 &middot; 1024px, 35 steps, guidance 7.0, negative prompt active</figcaption>
+    </figure>
+  </div>
+  <div class="tablewrap" style="margin-top:16px">
+    <table>
+      <thead><tr><th>Setting</th><th>sd-turbo</th><th>RealVisXL V4.0</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>Resolution</td><td>512</td><td><strong>1024</strong></td><td>SDXL was trained at 1024; 512 throws away detail</td></tr>
+        <tr><td>Denoising steps</td><td>4</td><td><strong>35</strong></td><td>More steps, finer high-frequency structure</td></tr>
+        <tr><td>Guidance scale</td><td>0.0</td><td><strong>7.0</strong></td><td>The decisive one &mdash; enables prompt adherence at all</td></tr>
+        <tr><td>Negative prompt</td><td>ignored</td><td><strong>active</strong></td><td>Steers away from illustration / render / CGI</td></tr>
+        <tr><td>Time per image</td><td>1.6 s</td><td>90 s</td><td>The cost of the above</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Why this needed two models</h2>
+  <div class="callout">
+    <p class="tight">
+      <strong>The from-scratch UNet cannot take a breed prompt.</strong> It is conditioned on an
+      <code>nn.Embedding</code> over class <em>indices</em> &mdash; there is no text encoder and no
+      cross-attention, so the only things it can be asked for are labels it saw in training.
+    </p>
+    <p>
+      "Australian Shepherd" is also absent from every credential-free labelled pet dataset:
+      Oxford-IIIT Pet has 37 breeds, Stanford Dogs has 120, and neither includes it.
+      So the breed prompt goes to a text-conditioned model, and the scratch model is
+      judged on breeds it can actually see.
+    </p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>From scratch &mdash; this repo</h3>
+      <p style="margin-bottom:0">
+        14.3M-parameter UNet, cosine noise schedule over 1000 steps, EMA weights,
+        classifier-free guidance, DDIM sampling. Conditioned on 2&ndash;37 integer class labels.
+        Trained on 380 images for ~76 minutes.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Pretrained &mdash; sd-turbo</h3>
+      <p style="margin-bottom:0">
+        ~1B parameters, latent diffusion with a CLIP text encoder and cross-attention,
+        distilled to 4 steps. Trained on billions of captioned images at a cost of
+        millions of GPU-hours. Inference only here.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Bugs the samples exposed</h2>
+  <p>
+    The loss curve looked healthy while every sample came out as coloured speckle.
+    That gap is diagnostic: training was fine, <em>sampling</em> was broken.
+  </p>
+
+  <h3>1. The predicted <span class="nowrap">x&#8320;</span> was never clipped</h3>
+  <p>
+    Sampling starts at t=980, where <code>sqrt(alphas_cumprod)</code> &asymp; 0.03. Recovering
+    x&#8320; divides by that, multiplying any noise-prediction error by ~32. With no clamp, the
+    x&#8320; estimate left <span class="nowrap">[-1,&nbsp;1]</span> by an order of magnitude on the
+    first steps and never came back.
+  </p>
+  <div class="grid2">
+    <figure>
+      <img class="pixelated" id="img-bug-noise" alt="Four generated images that are pure colour speckle">
+      <figcaption>
+        Before &mdash; output range <strong>[-17.3, 20.1]</strong>, 69% of pixels saturated past &plusmn;0.99.
+      </figcaption>
+    </figure>
+    <figure>
+      <img class="pixelated" id="img-bug-fixed" alt="Four generated images showing soft grey-brown blobs with visible structure">
+      <figcaption>
+        After &mdash; <code>x0.clamp(-1, 1)</code> each step. Range <strong>[-1, 1]</strong>, 0.3% saturated.
+        Same checkpoint, same seed.
+      </figcaption>
+    </figure>
+  </div>
+  <p style="margin-top:14px">
+    Fixed in both samplers. The DDPM path was rewritten to build its posterior mean from the
+    clipped x&#8320; using the <code>posterior_mean_coef</code> buffers the class already registered
+    &mdash; verified algebraically identical to the original closed form to 3e-13 in float64.
+  </p>
+
+  <h3>2. Early stopping threw away 300 epochs</h3>
+  <p>
+    The first full run halted at epoch 335 &mdash; and the checkpoint it kept was from
+    <strong>epoch 34</strong>. Two compounding causes: <code>max_patience</code> was
+    <code>num_epochs // 4</code> = 300, and best-checkpoint selection tracked validation
+    noise-MSE, which on a 20-image split is almost pure noise, so it latched onto a lucky
+    early epoch and never beat it.
+  </p>
+  <p>
+    Early stopping on validation loss is simply the wrong tool for a generative model:
+    sample quality keeps improving long after that number plateaus. Diffusion models are
+    normally trained to a fixed step budget, keeping the latest EMA weights. So early
+    stopping is now off by default (<code>--patience 0</code>) and the latest weights are
+    always written to <code>model_last.pth</code> beside the best-val <code>model.pth</code>.
+  </p>
+
+  <h3>3. DataLoader workers re-spawned every epoch</h3>
+  <p>
+    Without <code>persistent_workers</code>, every epoch pays macOS process spawn. On a
+    380-image dataset an epoch is ~12 optimizer steps, so <strong>9 of every 11.6 seconds
+    were spawn overhead</strong>. Setting it cut the epoch to 3.8&nbsp;s &mdash; a 3&times; speedup
+    that bought 3&times; the training steps in the same wall clock.
+  </p>
+  <p>
+    And a fourth, smaller: <code>inverse_normalize</code> was a lambda stored on the dataset,
+    which made it unpicklable and crashed any run with <code>--num-workers &gt; 0</code>.
+  </p>
+</section>
+
+<section>
+  <h2>Augmentation was blocking the overfit check</h2>
+  <p>
+    The goal was a memorisation check: train two visually opposite breeds until the model
+    reproduces them, proving the pipeline end to end. It would not converge to anything
+    recognisable, and the dataset was the reason.
+  </p>
+  <p>
+    <code>RandomResizedCrop</code>, <code>RandomHorizontalFlip</code> and
+    <code>ColorJitter</code> ran on <em>every</em> load, so the model never saw the same
+    image twice. That is correct for generalisation and precisely wrong for memorisation
+    &mdash; augmentation effectively enlarges the dataset, which is the opposite of what an
+    overfit test needs.
+  </p>
+  <p>
+    Two flags now exist for this. <code>--no-augment</code> makes loads deterministic
+    (verified bit-identical across reads). <code>--repeat N</code> presents the split N
+    times per epoch: 64 images at batch 32 is 2 optimizer steps, so per-epoch validation and
+    report writing cost more than the training itself &mdash; <code>--repeat 8</code> makes
+    it 16 steps per epoch instead.
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Run</th><th class="num">Images</th><th>Augment</th><th class="num">Steps</th><th>Outcome</th></tr></thead>
+      <tbody>
+        <tr><td>1 &mdash; 64px</td><td class="num">324</td><td>on</td><td class="num">1,500</td><td>saturated speckle (x&#8320; clipping bug)</td></tr>
+        <tr><td>2 &mdash; 32px</td><td class="num">380</td><td>on</td><td class="num">2,200</td><td>texture, no structure; early-stopped at epoch 34</td></tr>
+        <tr class="best"><td>3 &mdash; 32px memorise</td><td class="num">64</td><td><strong>off</strong></td><td class="num">9,600</td><td>see below</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Throughput on MPS &mdash; why 32&times;32</h2>
+  <p>
+    Measured, not guessed. The 64px config could reach only ~3.6k optimizer steps per hour;
+    DDPM results are usually quoted at 100k+ steps, so resolution had to give way to step count.
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Config</th><th class="num">ms / step</th><th class="num">Steps / hour</th><th class="num">Speedup</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>64px, attention at 16 + 32 <span style="color:var(--text-muted)">(original)</span></td><td class="num">1005</td><td class="num">3,581</td><td class="num">1.0&times;</td></tr>
+        <tr><td>64px, attention at 16 only</td><td class="num">672</td><td class="num">5,357</td><td class="num">1.5&times;</td></tr>
+        <tr class="best"><td>32px, attention at 8 <span style="color:var(--text-muted)">(chosen)</span></td><td class="num">196</td><td class="num">18,367</td><td class="num">5.1&times;</td></tr>
+        <tr><td>32px, attention at 8, batch 64</td><td class="num">368</td><td class="num">9,771</td><td class="num">2.7&times;</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:12px">
+    Self-attention at the 32&times;32 feature map is the expensive term &mdash; 1024 tokens per
+    head. Standard DDPM applies attention at 16&times;16 only; the repo was doing both, so it is
+    now behind <code>--attention-resolutions</code>.
+  </p>
+</section>
+
+<section>
+  <h2>Training run &mdash; samoyed vs pug</h2>
+  <div class="stats" id="stats"></div>
+  <div class="card" style="margin-top:16px">
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--series-1)"></i>Train loss</span>
+      <span><i class="swatch" style="background:var(--series-2)"></i>Validation loss</span>
+    </div>
+    <div class="toggle" role="group" aria-label="Y axis scale">
+      <button type="button" data-scale="log" aria-pressed="true">Log scale</button>
+      <button type="button" data-scale="linear" aria-pressed="false">Linear</button>
+    </div>
+    <div class="chart-holder">
+      <svg id="chart" viewBox="0 0 860 330" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Training and validation noise-prediction loss by epoch"></svg>
+      <div class="tooltip" id="tt"></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-muted);margin:10px 0 0">
+      Noise-prediction MSE. Validation is 20 held-out images, so it is noisy epoch to epoch.
+      A model that simply echoed its input would score ~1.0.
+    </p>
+  </div>
+  <details style="margin-top:14px">
+    <summary style="cursor:pointer;font-size:13px;color:var(--text-secondary)">Loss table</summary>
+    <div class="tablewrap" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Epoch</th><th class="num">Steps</th><th class="num">Train loss</th><th class="num">Val loss</th></tr></thead>
+        <tbody id="loss-rows"></tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<section>
+  <h2>More sampling steps made it worse</h2>
+  <p>
+    Counterintuitive, and measurable. Sampling the same weights at increasing DDIM step
+    counts steadily <em>drains</em> contrast &mdash; the images wash out toward flat grey.
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="num">DDIM steps</th><th class="num">Image std (guidance 1.0)</th><th class="num">Image std (guidance 3.0)</th></tr></thead>
+      <tbody>
+        <tr class="best"><td class="num">25</td><td class="num">0.352</td><td class="num">0.343</td></tr>
+        <tr class="best"><td class="num">50</td><td class="num">0.320</td><td class="num">0.283</td></tr>
+        <tr><td class="num">100</td><td class="num">0.234</td><td class="num">0.189</td></tr>
+        <tr><td class="num">200</td><td class="num">0.212</td><td class="num">0.197</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:12px">
+    The cause is the interaction between <code>clip_denoised</code> and an undertrained
+    model. Every step re-projects the x&#8320; estimate back into
+    <span class="nowrap">[-1,&nbsp;1]</span>; when that estimate is poor, each projection
+    pulls slightly toward the mean, and more steps means more contractions. Clipping is
+    still necessary &mdash; without it the samples are pure speckle &mdash; but with these
+    weights the sweet spot is <strong>25&ndash;50 steps</strong>, not 200. A better-trained
+    model would not contract like this.
+  </p>
+</section>
+
+<section>
+  <h2>Where the shortfall actually is</h2>
+  <p>
+    Reconstruction quality per noise level, measured on held-out images. The model recovers
+    x&#8320; almost perfectly from lightly noised inputs and badly from heavily noised ones
+    &mdash; and DDIM sampling <em>starts</em> at t=980. That is the signature of too few
+    optimizer steps, not a broken sampler.
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="num">t</th><th class="num">&epsilon; MSE</th><th class="num">x&#8320; MSE</th><th class="num">x&#8320; MSE clipped</th></tr></thead>
+      <tbody>
+        <tr><td class="num">20</td><td class="num">0.442</td><td class="num">0.0010</td><td class="num">0.0010</td></tr>
+        <tr><td class="num">100</td><td class="num">0.224</td><td class="num">0.0066</td><td class="num">0.0066</td></tr>
+        <tr><td class="num">400</td><td class="num">0.096</td><td class="num">0.053</td><td class="num">0.052</td></tr>
+        <tr><td class="num">800</td><td class="num">0.060</td><td class="num">0.583</td><td class="num">0.403</td></tr>
+        <tr><td class="num">980</td><td class="num">0.050</td><td class="num">56.9</td><td class="num">1.10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:12px">
+    The last row is also independent confirmation that clipping matters: the same estimate
+    goes from 56.9 to 1.10 once it is clamped back into range.
+  </p>
+</section>
+
+<section>
+  <h2>Same two breeds, both models</h2>
+  <p>
+    The honest comparison. There is no version of this where an hour of laptop training
+    competes with millions of GPU-hours. What the from-scratch run demonstrates is that the
+    <em>pipeline</em> learns and that the class label steers the sampler &mdash; at 32&times;32,
+    from 380 photos.
+  </p>
+  <div class="grid4" id="sd-breeds"></div>
+  <div id="scratch-block" hidden style="margin-top:24px">
+    <h3>From-scratch model output</h3>
+    <p id="scratch-note"></p>
+    <div class="grid2" id="scratch-grid"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Reproduce</h2>
+  <p class="tight">The dataset downloads itself &mdash; 792&nbsp;MB, no credentials, no Kaggle account.</p>
+  <pre><code># memorisation check: small set, augmentation OFF, no early stopping
+python train.py --breeds samoyed,pug --epochs 600 --image-size 32 \
+  --attention-resolutions auto --no-augment --repeat 8 --max-samples 64 \
+  --ema-decay 0.999 --label-dropout 0.1 --num-workers 0 --patience 0 \
+  --output-dir outputs/overfit64
+
+# sample a breed the checkpoint knows about (model_last = latest weights)
+python sample.py --checkpoint outputs/overfit64/model_last.pth \
+  --class-name samoyed --num-samples 8 --cfg-scale 3.0 --sample-steps 100
+
+# all 37 breeds (needs many more steps than one laptop hour)
+python train.py --epochs 200 --image-size 32 --attention-resolutions auto
+
+# photoreal text prompts (RealVisXL is the default model)
+python text2image.py --prompt "RAW photo of an australian shepherd dog in a meadow, 85mm lens"
+
+# fast but illustrated-looking, for iterating on prompts
+python text2image.py --prompt "a photo of a tabby cat" --model stabilityai/sd-turbo</code></pre>
+</section>
+
+<section>
+  <h2>What would actually move the needle</h2>
+  <ul>
+    <li><strong>More steps, by a lot.</strong> This run is ~9.6k optimizer steps. Published
+      32&times;32 DDPM results use 300k&ndash;800k, and the diagnostic below shows exactly where
+      the shortfall bites. Overnight is the single biggest win available.</li>
+    <li><strong>Then resolution.</strong> 64px only makes sense once 32px is converged;
+      it costs 5&times; the time per step.</li>
+    <li><strong>Fine-tune instead of train.</strong> The repo already has
+      <code>--freeze-policy</code>. Adapting pretrained weights beats from-scratch on this
+      hardware for any real image quality.</li>
+    <li><strong>Breed prompts need text conditioning.</strong> Swapping the class
+      <code>nn.Embedding</code> for a text encoder plus cross-attention is the architectural
+      change that would let one model answer "Australian Shepherd" &mdash; and it needs
+      captioned data, which Oxford Pets does not have.</li>
+  </ul>
+</section>
+
+<footer>
+  Trained on Oxford-IIIT Pet (7,390 images, 37 breeds) on Apple&nbsp;MPS.
+  Pretrained samples from <code>SG161222/RealVisXL_V4.0</code> and <code>stabilityai/sd-turbo</code>.
+</footer>
+
+</div>
+
+<script>
+  const IMAGES = __IMAGES__;
+  const LOSS = __LOSS__;
+  const RUN = __RUN__;
+
+  /* ---------- images ---------- */
+  document.getElementById('img-bug-noise').src = IMAGES.bug_noise;
+  document.getElementById('img-bug-fixed').src = IMAGES.bug_fixed;
+
+  document.getElementById('img-turbo').src = IMAGES.turbo_aussie;
+  document.getElementById('img-realvis').src = IMAGES.realvis_aussie;
+
+  document.getElementById('aussie-grid').innerHTML = [0, 1, 2, 3].map(i => `
+    <figure>
+      <img src="${IMAGES['aussie' + i]}" alt="Photorealistic Australian Shepherd portrait in a meadow">
+      <figcaption>portrait &middot; seed 12 &middot; sample ${i + 1}</figcaption>
+    </figure>`).join('');
+
+  document.getElementById('aussie-run-grid').innerHTML = [0, 1].map(i => `
+    <figure>
+      <img src="${IMAGES['aussie_run' + i]}" alt="Photorealistic Australian Shepherd running in a field">
+      <figcaption>full body, 200mm telephoto &middot; seed 21 &middot; sample ${i + 1}</figcaption>
+    </figure>`).join('');
+
+  const breedCards = [
+    ['rv_samoyed', 'RealVisXL — samoyed'],
+    ['rv_pug', 'RealVisXL — pug'],
+    ['sd_samoyed', 'sd-turbo — samoyed'],
+    ['sd_pug', 'sd-turbo — pug'],
+  ];
+  document.getElementById('sd-breeds').innerHTML = breedCards.map(([k, cap]) => `
+    <figure><img src="${IMAGES[k]}" alt="${cap}"><figcaption>${cap}</figcaption></figure>`).join('');
+
+  if (RUN.has_scratch || RUN.has_preview) {
+    const block = document.getElementById('scratch-block');
+    block.hidden = false;
+    const cards = [];
+    if (RUN.has_scratch) {
+      cards.push(['scratch_samoyed', 'from scratch — samoyed, 32&times;32 upscaled 5&times;']);
+      cards.push(['scratch_pug', 'from scratch — pug, 32&times;32 upscaled 5&times;']);
+    } else if (RUN.has_preview) {
+      cards.push(['scratch_preview', `training preview, epoch ${RUN.preview_epoch} — rows: pug, samoyed`]);
+    }
+    document.getElementById('scratch-grid').innerHTML = cards.map(([k, cap]) => `
+      <figure><img class="pixelated" src="${IMAGES[k]}" alt="${cap}"><figcaption>${cap}</figcaption></figure>`).join('');
+    document.getElementById('scratch-note').innerHTML =
+      `Sampled with DDIM, 100 steps, classifier-free guidance 3.0, from the EMA weights after ` +
+      `${(RUN.total_epochs * RUN.steps_per_epoch).toLocaleString()} optimizer steps.`;
+  }
+
+  /* ---------- stat tiles ---------- */
+  const n = LOSS.epochs.length;
+  const lastTrain = LOSS.train[n - 1], lastVal = LOSS.val[n - 1];
+  const bestVal = Math.min(...LOSS.val);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="k">Epochs done</div><div class="v">${n}${RUN.total_epochs ? ' / ' + RUN.total_epochs : ''}</div><div class="s">~${(n * RUN.steps_per_epoch).toLocaleString()} steps</div></div>
+    <div class="stat"><div class="k">Train loss</div><div class="v">${lastTrain.toFixed(4)}</div><div class="s">from ${LOSS.train[0].toFixed(3)} at epoch 0</div></div>
+    <div class="stat"><div class="k">Val loss</div><div class="v">${lastVal.toFixed(4)}</div><div class="s">best ${bestVal.toFixed(4)}</div></div>
+    <div class="stat"><div class="k">Parameters</div><div class="v">14.3M</div><div class="s">32&times;32, 380 images</div></div>`;
+
+  /* ---------- loss table ---------- */
+  const step = Math.max(1, Math.floor(n / 24));
+  const rows = [];
+  for (let i = 0; i < n; i += step) rows.push(i);
+  if (rows[rows.length - 1] !== n - 1) rows.push(n - 1);
+  document.getElementById('loss-rows').innerHTML = rows.map(i => `
+    <tr><td>${LOSS.epochs[i]}</td><td class="num">${(LOSS.epochs[i] * RUN.steps_per_epoch).toLocaleString()}</td>
+    <td class="num">${LOSS.train[i].toFixed(4)}</td><td class="num">${LOSS.val[i].toFixed(4)}</td></tr>`).join('');
+
+  /* ---------- line chart ---------- */
+  const svg = document.getElementById('chart');
+  const tt = document.getElementById('tt');
+  const W = 860, H = 330, M = { t: 16, r: 74, b: 40, l: 54 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  let scale = 'log';
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (name, attrs, text) => {
+    const node = document.createElementNS(NS, name);
+    for (const k in attrs) node.setAttribute(k, attrs[k]);
+    if (text != null) node.textContent = text;
+    return node;
+  };
+
+  function draw() {
+    svg.textContent = '';
+    const xs = LOSS.epochs;
+    const all = LOSS.train.concat(LOSS.val).filter(v => v > 0);
+    const xMin = xs[0], xMax = Math.max(xs[xs.length - 1], 1);
+    const X = e => M.l + (e - xMin) / (xMax - xMin || 1) * iw;
+
+    let Y, ticks;
+    if (scale === 'log') {
+      const lo = Math.log10(Math.min(...all) * 0.85), hi = Math.log10(Math.max(...all) * 1.1);
+      Y = v => M.t + ih - (Math.log10(Math.max(v, 1e-6)) - lo) / (hi - lo) * ih;
+      ticks = [];
+      for (const base of [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]) {
+        if (Math.log10(base) >= lo && Math.log10(base) <= hi) ticks.push(base);
+      }
+    } else {
+      const hi = Math.max(...all) * 1.06;
+      Y = v => M.t + ih - v / hi * ih;
+      ticks = [0, 0.2, 0.4, 0.6, 0.8, 1.0].filter(v => v <= hi);
+    }
+
+    for (const v of ticks) {
+      svg.appendChild(el('line', { class: 'grid-line', x1: M.l, x2: M.l + iw, y1: Y(v), y2: Y(v) }));
+      svg.appendChild(el('text', { x: M.l - 9, y: Y(v) + 4, 'text-anchor': 'end' }, String(v)));
+    }
+    svg.appendChild(el('line', { class: 'axis-line', x1: M.l, x2: M.l + iw, y1: M.t + ih, y2: M.t + ih }));
+
+    const xStep = Math.max(1, Math.round((xMax - xMin) / 6 / 10) * 10);
+    for (let e = xMin; e <= xMax; e += xStep) {
+      svg.appendChild(el('text', { x: X(e), y: M.t + ih + 21, 'text-anchor': 'middle' }, String(e)));
+    }
+    svg.appendChild(el('text', { x: M.l + iw / 2, y: H - 4, 'text-anchor': 'middle' }, 'epoch'));
+    svg.appendChild(el('text', {
+      x: 14, y: M.t + ih / 2, 'text-anchor': 'middle',
+      transform: `rotate(-90 14 ${M.t + ih / 2})`,
+    }, scale === 'log' ? 'noise MSE (log)' : 'noise MSE'));
+
+    const series = [
+      { key: 'train', color: 'var(--series-1)', label: 'train' },
+      { key: 'val', color: 'var(--series-2)', label: 'val' },
+    ];
+    for (const s of series) {
+      const d = LOSS[s.key].map((v, i) => `${i ? 'L' : 'M'}${X(xs[i]).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+      svg.appendChild(el('path', { class: 'serie', d, stroke: s.color }));
+      const li = LOSS[s.key].length - 1;
+      svg.appendChild(el('text', {
+        class: 'dlabel', x: M.l + iw + 8, y: Y(LOSS[s.key][li]) + 4, fill: s.color,
+      }, `${s.label} ${LOSS[s.key][li].toFixed(3)}`));
+    }
+
+    const cross = el('line', { class: 'crosshair', y1: M.t, y2: M.t + ih, opacity: 0 });
+    svg.appendChild(cross);
+    const dots = series.map(s => {
+      const c = el('circle', { class: 'dot', r: 4.5, fill: s.color, opacity: 0 });
+      svg.appendChild(c);
+      return c;
+    });
+
+    const hit = el('rect', { x: M.l, y: M.t, width: iw, height: ih, fill: 'transparent' });
+    svg.appendChild(hit);
+
+    function move(ev) {
+      const box = svg.getBoundingClientRect();
+      const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - box.left;
+      const ex = xMin + (px / box.width * W - M.l) / iw * (xMax - xMin);
+      let i = 0, best = Infinity;
+      xs.forEach((e, j) => { const dd = Math.abs(e - ex); if (dd < best) { best = dd; i = j; } });
+      cross.setAttribute('x1', X(xs[i])); cross.setAttribute('x2', X(xs[i]));
+      cross.setAttribute('opacity', 1);
+      series.forEach((s, k) => {
+        dots[k].setAttribute('cx', X(xs[i]));
+        dots[k].setAttribute('cy', Y(LOSS[s.key][i]));
+        dots[k].setAttribute('opacity', 1);
+      });
+      tt.innerHTML = `<div class="tt-t">Epoch ${xs[i]} &middot; ${(xs[i] * RUN.steps_per_epoch).toLocaleString()} steps</div>
+        <div class="tt-r"><i class="swatch" style="background:var(--series-1)"></i>train<b>${LOSS.train[i].toFixed(4)}</b></div>
+        <div class="tt-r"><i class="swatch" style="background:var(--series-2)"></i>val<b>${LOSS.val[i].toFixed(4)}</b></div>`;
+      const relX = X(xs[i]) / W * box.width;
+      tt.style.opacity = 1;
+      tt.style.left = Math.min(Math.max(relX - tt.offsetWidth / 2, 0), box.width - tt.offsetWidth) + 'px';
+      tt.style.top = (Y(LOSS.train[i]) / H * box.height - tt.offsetHeight - 12) + 'px';
+    }
+    function leave() {
+      cross.setAttribute('opacity', 0);
+      dots.forEach(d => d.setAttribute('opacity', 0));
+      tt.style.opacity = 0;
+    }
+    hit.addEventListener('mousemove', move);
+    hit.addEventListener('mouseleave', leave);
+    hit.addEventListener('touchmove', move, { passive: true });
+    hit.addEventListener('touchend', leave);
+  }
+
+  document.querySelectorAll('.toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      scale = b.dataset.scale;
+      document.querySelectorAll('.toggle button').forEach(o =>
+        o.setAttribute('aria-pressed', String(o === b)));
+      draw();
+    });
+  });
+  draw();
+  window.addEventListener('resize', () => { tt.style.opacity = 0; });
+</script>

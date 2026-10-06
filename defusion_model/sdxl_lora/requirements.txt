@@ -1,0 +1,28 @@
+# Core
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Diffusion / model stack
+diffusers>=0.27.0
+transformers>=4.38.0
+peft>=0.9.0
+accelerate>=0.27.0
+safetensors>=0.4.0
+
+# Data / utils
+Pillow>=10.0.0
+numpy>=1.24.0
+tqdm>=4.66.0
+
+# Logging
+tensorboard>=2.15.0
+
+# Optional: memory-efficient attention. CUDA only -- it has no macOS/MPS build,
+# so install it separately on a GPU box rather than blocking this file:
+#   pip install xformers>=0.0.24
+# Then pass --enable-xformers. The script falls back to standard attention if
+# the import fails, so it is never required.
+# xformers>=0.0.24
+
+# Optional: 8-bit Adam, cuts optimiser memory noticeably on large runs (CUDA only)
+# bitsandbytes>=0.42.0

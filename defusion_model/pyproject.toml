@@ -1,0 +1,55 @@
+# Poetry project definition.
+#
+#   poetry install          -> creates the venv and installs everything below
+#   poetry run <script>     -> runs one of the [tool.poetry.scripts] entry points
+#
+# torch/torchvision are pulled from PyPI, which ships CPU + Apple-MPS wheels.
+# For an NVIDIA box install the CUDA build afterwards, e.g.
+#   poetry run pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu121
+
+[tool.poetry]
+name = "pet-lora-sdxl"
+version = "0.1.0"
+description = "POC: LoRA fine-tuning of SDXL on Oxford-IIIT Pet, with a measured breed-fidelity evaluation"
+authors = ["or.livne"]
+readme = "README.md"
+package-mode = true
+packages = [{ include = "sdxl_lora" }]
+# top-level helper modules that also ship as console scripts
+include = ["prepare_data.py", "breed_probe.py", "eval_lora.py", "build_all_sheets.py"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.15"
+torch = ">=2.1.0"
+torchvision = ">=0.16.0"
+diffusers = ">=0.27.0"
+transformers = ">=4.38.0"
+peft = ">=0.9.0"
+accelerate = ">=0.27.0"
+safetensors = ">=0.4.0"
+pillow = ">=10.0.0"
+numpy = ">=1.24.0"
+tqdm = ">=4.66.0"
+tensorboard = ">=2.15.0"
+
+[tool.poetry.group.dev.dependencies]
+# optional: xformers is CUDA-only and has no macOS wheel, so it is not a
+# hard dependency. On a CUDA box: poetry run pip install xformers
+pytest = ">=8.0.0"
+
+[tool.poetry.scripts]
+# 1. download + caption the dataset
+prepare-data      = "prepare_data:main"
+# 2. train the supervised judge used for early stopping
+breed-probe       = "breed_probe:main"
+# 3. train the LoRA
+train-lora        = "sdxl_lora.train_lora:main"
+# 4. generate images (base vs LoRA)
+infer             = "sdxl_lora.inference:main"
+# 5. score checkpoints / build comparison sheets
+eval-lora         = "eval_lora:main"
+build-sheets      = "build_all_sheets:main"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
