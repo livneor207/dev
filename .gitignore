@@ -1,0 +1,7 @@
+*.mdc
+**/.gitignore
+!.gitignore
+.idea/vcs.xml
+.idea/inspectionProfiles/
+*.pth
+*.pt
